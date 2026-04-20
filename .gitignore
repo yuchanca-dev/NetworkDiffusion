@@ -1,0 +1,7 @@
+# Sensitive data files
+Cleaned_Data/w[0-9]*_*.csv
+Cleaned_Data/w[0-9]*edges*.csv
+Cleaned_Data/w[0-9]*_*.xlsx
+
+# R data files
+*.RData
