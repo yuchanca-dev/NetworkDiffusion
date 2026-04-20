@@ -1,0 +1,26 @@
+"toa","thr","Freq"
+"Non-Adopters","Non-Adopters",78.53
+"Early Adopters","Non-Adopters",0
+"Early Majority","Non-Adopters",0
+"Late Majority","Non-Adopters",0
+"Laggards","Non-Adopters",0
+"Non-Adopters","Very Low Thresh.",0
+"Early Adopters","Very Low Thresh.",0
+"Early Majority","Very Low Thresh.",0
+"Late Majority","Very Low Thresh.",0
+"Laggards","Very Low Thresh.",0
+"Non-Adopters","Low Thresh.",0
+"Early Adopters","Low Thresh.",2.09
+"Early Majority","Low Thresh.",5.06
+"Late Majority","Low Thresh.",5.23
+"Laggards","Low Thresh.",1.48
+"Non-Adopters","High Thresh.",0
+"Early Adopters","High Thresh.",0.24
+"Early Majority","High Thresh.",1.24
+"Late Majority","High Thresh.",1.82
+"Laggards","High Thresh.",0.44
+"Non-Adopters","Very High Thresh.",0
+"Early Adopters","Very High Thresh.",0.12
+"Early Majority","Very High Thresh.",0.75
+"Late Majority","Very High Thresh.",2.36
+"Laggards","Very High Thresh.",0.63
