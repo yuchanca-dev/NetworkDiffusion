@@ -5,3 +5,7 @@ Cleaned_Data/w[0-9]*_*.xlsx
 
 # R data files
 *.RData
+
+# macOS
+.DS_Store
+**/.DS_Store
