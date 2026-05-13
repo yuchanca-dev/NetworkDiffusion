@@ -1,0 +1,204 @@
+
+
+=== (A) Quasibinomial — all (Yuchan baseline) — GAD ===
+n used = 481
+
+Call:
+glm(formula = fml, family = quasibinomial(link = "logit"), data = d)
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  -1.86051    0.38608  -4.819 1.95e-06 ***
+factor(toa)4 -0.06020    0.32981  -0.183  0.85524    
+factor(toa)5 -0.05017    0.34672  -0.145  0.88502    
+factor(toa)6  0.14448    0.36168   0.399  0.68974    
+factor(toa)7  0.31839    0.36130   0.881  0.37864    
+factor(toa)8  0.50094    0.37735   1.327  0.18499    
+cohortC2     -0.33660    0.20430  -1.648  0.10011    
+female        0.10795    0.17654   0.611  0.54120    
+hispanic      0.49719    0.18571   2.677  0.00768 ** 
+asian        -0.03687    0.25177  -0.146  0.88363    
+sex_min       0.09733    0.18761   0.519  0.60415    
+gad          -0.01964    0.10438  -0.188  0.85086    
+friends_ecig  0.12667    0.04829   2.623  0.00899 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for quasibinomial family taken to be 0.4758229)
+
+    Null deviance: 257.63  on 480  degrees of freedom
+Residual deviance: 244.85  on 468  degrees of freedom
+AIC: NA
+
+Number of Fisher Scoring iterations: 4
+
+
+
+=== (A) Quasibinomial — all (Yuchan baseline) — MDD ===
+n used = 474
+
+Call:
+glm(formula = fml, family = quasibinomial(link = "logit"), data = d)
+
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  -1.775418   0.392442  -4.524 7.73e-06 ***
+factor(toa)4 -0.069383   0.334660  -0.207  0.83585    
+factor(toa)5  0.002733   0.351974   0.008  0.99381    
+factor(toa)6  0.153036   0.366204   0.418  0.67622    
+factor(toa)7  0.304173   0.366270   0.830  0.40671    
+factor(toa)8  0.498055   0.381028   1.307  0.19182    
+cohortC2     -0.325330   0.206925  -1.572  0.11659    
+female        0.129440   0.178449   0.725  0.46860    
+hispanic      0.488092   0.188289   2.592  0.00984 ** 
+asian        -0.042192   0.255947  -0.165  0.86914    
+sex_min       0.135501   0.191375   0.708  0.47928    
+mdd          -0.149494   0.113459  -1.318  0.18829    
+friends_ecig  0.137987   0.049192   2.805  0.00524 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for quasibinomial family taken to be 0.4827105)
+
+    Null deviance: 256.16  on 473  degrees of freedom
+Residual deviance: 242.79  on 461  degrees of freedom
+AIC: NA
+
+Number of Fisher Scoring iterations: 4
+
+
+
+=== (B) Quasibinomial — non-isolates only — GAD ===
+n used = 404
+
+Call:
+glm(formula = fml, family = quasibinomial(link = "logit"), data = d)
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  -1.49490    0.38485  -3.884 0.000120 ***
+factor(toa)4 -0.05218    0.32529  -0.160 0.872639    
+factor(toa)5 -0.20017    0.34632  -0.578 0.563603    
+factor(toa)6  0.09383    0.35893   0.261 0.793908    
+factor(toa)7  0.22706    0.35592   0.638 0.523875    
+factor(toa)8  0.47817    0.38096   1.255 0.210170    
+cohortC2     -0.37634    0.20403  -1.845 0.065858 .  
+female        0.02258    0.17575   0.128 0.897846    
+hispanic      0.37802    0.18739   2.017 0.044343 *  
+asian        -0.17357    0.24963  -0.695 0.487280    
+sex_min       0.08790    0.18768   0.468 0.639808    
+gad          -0.01227    0.10506  -0.117 0.907070    
+friends_ecig  0.16990    0.04938   3.441 0.000642 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for quasibinomial family taken to be 0.4476753)
+
+    Null deviance: 218.88  on 403  degrees of freedom
+Residual deviance: 203.38  on 391  degrees of freedom
+AIC: NA
+
+Number of Fisher Scoring iterations: 4
+
+
+
+=== (B) Quasibinomial — non-isolates only — MDD ===
+n used = 397
+
+Call:
+glm(formula = fml, family = quasibinomial(link = "logit"), data = d)
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  -1.42583    0.39197  -3.638 0.000313 ***
+factor(toa)4 -0.05981    0.33029  -0.181 0.856392    
+factor(toa)5 -0.14890    0.35217  -0.423 0.672678    
+factor(toa)6  0.10158    0.36371   0.279 0.780169    
+factor(toa)7  0.21564    0.36131   0.597 0.550966    
+factor(toa)8  0.47343    0.38478   1.230 0.219298    
+cohortC2     -0.35677    0.20661  -1.727 0.085011 .  
+female        0.03650    0.17771   0.205 0.837395    
+hispanic      0.35841    0.18945   1.892 0.059260 .  
+asian        -0.18815    0.25353  -0.742 0.458470    
+sex_min       0.10603    0.19058   0.556 0.578297    
+mdd          -0.10524    0.11522  -0.913 0.361596    
+friends_ecig  0.17728    0.05012   3.537 0.000454 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for quasibinomial family taken to be 0.4542945)
+
+    Null deviance: 217.38  on 396  degrees of freedom
+Residual deviance: 202.01  on 384  degrees of freedom
+AIC: NA
+
+Number of Fisher Scoring iterations: 4
+
+
+
+=== (C) Grouped binomial cbind(k, n-k) — GAD ===
+n used = 404
+
+Call:
+glm(formula = fml, family = binomial(link = "logit"), data = d)
+
+Coefficients:
+              Estimate Std. Error z value Pr(>|z|)    
+(Intercept)  -1.904020   0.328390  -5.798 6.71e-09 ***
+factor(toa)4  0.219381   0.268897   0.816   0.4146    
+factor(toa)5  0.267281   0.287137   0.931   0.3519    
+factor(toa)6  0.497111   0.305194   1.629   0.1033    
+factor(toa)7  0.491390   0.299144   1.643   0.1005    
+factor(toa)8  0.713154   0.327894   2.175   0.0296 *  
+cohortC2     -0.244902   0.172718  -1.418   0.1562    
+female        0.056345   0.151474   0.372   0.7099    
+hispanic      0.395104   0.159845   2.472   0.0134 *  
+asian        -0.346645   0.206532  -1.678   0.0933 .  
+sex_min      -0.013882   0.157843  -0.088   0.9299    
+gad          -0.003458   0.089462  -0.039   0.9692    
+friends_ecig  0.218532   0.041549   5.260 1.44e-07 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 553.97  on 403  degrees of freedom
+Residual deviance: 487.39  on 391  degrees of freedom
+AIC: 841.04
+
+Number of Fisher Scoring iterations: 4
+
+
+
+=== (C) Grouped binomial cbind(k, n-k) — MDD ===
+n used = 397
+
+Call:
+glm(formula = fml, family = binomial(link = "logit"), data = d)
+
+Coefficients:
+              Estimate Std. Error z value Pr(>|z|)    
+(Intercept)  -1.838387   0.334059  -5.503 3.73e-08 ***
+factor(toa)4  0.192674   0.272548   0.707   0.4796    
+factor(toa)5  0.322400   0.290790   1.109   0.2676    
+factor(toa)6  0.511068   0.308216   1.658   0.0973 .  
+factor(toa)7  0.487600   0.302992   1.609   0.1076    
+factor(toa)8  0.711341   0.329750   2.157   0.0310 *  
+cohortC2     -0.218641   0.174149  -1.255   0.2093    
+female        0.075712   0.152841   0.495   0.6203    
+hispanic      0.377643   0.161444   2.339   0.0193 *  
+asian        -0.364849   0.208864  -1.747   0.0807 .  
+sex_min      -0.005156   0.159241  -0.032   0.9742    
+mdd          -0.104624   0.096618  -1.083   0.2789    
+friends_ecig  0.226416   0.041955   5.397 6.79e-08 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 550.04  on 396  degrees of freedom
+Residual deviance: 482.40  on 384  degrees of freedom
+AIC: 826.59
+
+Number of Fisher Scoring iterations: 4
+
