@@ -1370,22 +1370,26 @@ cat("\n===== SOCIAL MEDIA SENSITIVITY ANALYSIS =====\n")
 cat("ecig_ads (statement_18): W5-W8 only | ecig_imp_use (statement_8): W3-W8\n")
 
 # Merge social media vars at TOA for each adopter
+# Rename to _toa BEFORE merge to avoid conflict with ecig_ads already in full_df (from GP3 merge)
 tv_toa_sm <- timevar_df[, c("id","grade_period","ecig_ads","ecig_imp_use","gad")]
+names(tv_toa_sm)[names(tv_toa_sm) == "ecig_ads"]     <- "ecig_ads_toa"
+names(tv_toa_sm)[names(tv_toa_sm) == "ecig_imp_use"] <- "ecig_imp_use_toa"
+
 sm_sub <- merge(full_df, tv_toa_sm,
                 by.x = c("id_orig","toa"), by.y = c("id","grade_period"), all.x = TRUE)
 
-cat(sprintf("ecig_ads non-NA (adopters with W5-W8 TOA):    %d\n",
-            sum(!is.na(sm_sub$ecig_ads[sm_sub$is_user == 1]))))
-cat(sprintf("ecig_imp_use non-NA (adopters with W3-W8 TOA): %d\n",
-            sum(!is.na(sm_sub$ecig_imp_use[sm_sub$is_user == 1]))))
+cat(sprintf("ecig_ads_toa non-NA (adopters with W5-W8 TOA):     %d\n",
+            sum(!is.na(sm_sub$ecig_ads_toa[sm_sub$is_user == 1]))))
+cat(sprintf("ecig_imp_use_toa non-NA (adopters with W3-W8 TOA): %d\n",
+            sum(!is.na(sm_sub$ecig_imp_use_toa[sm_sub$is_user == 1]))))
 
 sm_covs_ads     <- c("female","hispanic","asian","sex_min","par_edu","gad","mdd",
-                     "out_degree_gp3","in_degree_gp3","friends_ecig_gp3","ecig_ads")
+                     "out_degree_gp3","in_degree_gp3","friends_ecig_gp3","ecig_ads_toa")
 sm_covs_imp_use <- c("female","hispanic","asian","sex_min","par_edu","gad","mdd",
-                     "out_degree_gp3","in_degree_gp3","friends_ecig_gp3","ecig_imp_use")
+                     "out_degree_gp3","in_degree_gp3","friends_ecig_gp3","ecig_imp_use_toa")
 
 run_sm_or <- function(df, outcome_col, stratum_col, label, sm_var) {
-  covs <- if (sm_var == "ecig_ads") sm_covs_ads else sm_covs_imp_use
+  covs <- if (sm_var == "ecig_ads_toa") sm_covs_ads else sm_covs_imp_use
   exclude <- if (outcome_col == "col2_no_friends") c("out_degree_gp3","out_degree_gp8") else c()
   covs <- covs[!covs %in% exclude & covs %in% names(df)]
   sub  <- df[df[[stratum_col]] == 1 & !is.na(df[[outcome_col]]) & !is.na(df[[sm_var]]), ]
@@ -1407,7 +1411,7 @@ run_sm_or <- function(df, outcome_col, stratum_col, label, sm_var) {
 }
 
 sm_results <- list()
-for (sm_v in c("ecig_ads","ecig_imp_use")) {
+for (sm_v in c("ecig_ads_toa","ecig_imp_use_toa")) {
   sm_results[[paste0("col1_",sm_v)]] <- run_sm_or(sm_sub,"col1_no_exposure","is_user","Col1:NoExposure",sm_v)
   sm_results[[paste0("col2_",sm_v)]] <- run_sm_or(sm_sub,"col2_no_friends", "is_user","Col2:Isolates",sm_v)
   sm_results[[paste0("col3_",sm_v)]] <- run_sm_or(sm_sub,"col3_low_threshold","is_user","Col3:LowThresh",sm_v)
