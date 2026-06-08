@@ -259,26 +259,80 @@ for (sch in all_schools) {
       in_deg  <- as.integer(colSums(adj_gp_tmp))
     }
 
-    # Social media / advertising exposure variables
-    # ecig_statement_8  : "People who are important to me use e-cigs" (W1-W8, W3 onwards for our sample)
-    # ecig_statement_18 : "E-cigs have attractive ads online/billboards" (W5-W8 ONLY)
-    sm8_col  <- paste0("w", w, "_ecig_statement_8")
-    sm18_col <- paste0("w", w, "_ecig_statement_18")
-    sm8_raw  <- if (sm8_col  %in% names(r)) suppressWarnings(as.numeric(r[[sm8_col]]))  else rep(NA_real_, nrow(r))
-    sm18_raw <- if (sm18_col %in% names(r)) suppressWarnings(as.numeric(r[[sm18_col]])) else rep(NA_real_, nrow(r))
+    # Social media: E-cigarettes and nicotine vaping products (W4-W8 only)
+    #
+    # sm_post scale: 1=Several times/day, 2=Daily, 3=Weekly, 4=Monthly or less,
+    #                5=Never, 99=Don't know
+    # EXPOSED = responded 1-4 on any platform (any frequency > never)
+    #
+    # PRIMARY (consistent): sm_post_1~6 = Facebook/Instagram/Twitter/YouTube/TikTok/Twitch
+    #   Available W4-W8 for all; ensures comparability across waves
+    # SENSITIVITY (all available): grep all sm_post_* in that wave
+    #   Adds Discord(W4 only), Snapchat(W5-W8), Threads(W7-W8) when available
+
+    # ── Consistent 6-platform version ────────────────────────────────────────
+    sm_post_mat <- sapply(paste0("w", w, "_sm_post_", 1:6), function(col) {
+      if (col %in% names(r)) suppressWarnings(as.numeric(r[[col]])) else rep(NA_real_, nrow(r))
+    })
+    sm_exposed_mat <- (sm_post_mat >= 1 & sm_post_mat <= 4)
+    sm_exposed_mat[is.na(sm_post_mat)] <- NA
+    sm_ecig_any <- as.integer(apply(sm_exposed_mat, 1, function(x) {
+      if (all(is.na(x))) NA_integer_ else as.integer(any(x, na.rm = TRUE))
+    }))
+
+    # Frequency: recode 1→4, 2→3, 3→2, 4→1, 5/99→0 (higher = more frequent)
+    sm_freq_mat <- sm_post_mat
+    sm_freq_mat[sm_post_mat == 1]  <- 4
+    sm_freq_mat[sm_post_mat == 2]  <- 3
+    sm_freq_mat[sm_post_mat == 3]  <- 2
+    sm_freq_mat[sm_post_mat == 4]  <- 1
+    sm_freq_mat[sm_post_mat == 5 | sm_post_mat == 99] <- 0
+    sm_ecig_freq_max <- apply(sm_freq_mat, 1, function(x) {
+      if (all(is.na(x))) NA_real_ else as.numeric(max(x, na.rm = TRUE))
+    })
+
+    # ── All-available-platform version (sensitivity) ──────────────────────────
+    all_sm_cols <- grep(paste0("^w", w, "_sm_post_[0-9]+$"), names(r), value = TRUE)
+    if (length(all_sm_cols) > 0) {
+      sm_all_mat  <- sapply(all_sm_cols, function(col) suppressWarnings(as.numeric(r[[col]])))
+      sm_exp_all  <- (sm_all_mat >= 1 & sm_all_mat <= 4)
+      sm_exp_all[is.na(sm_all_mat)] <- NA
+      sm_ecig_any_all <- as.integer(apply(sm_exp_all, 1, function(x) {
+        if (all(is.na(x))) NA_integer_ else as.integer(any(x, na.rm = TRUE))
+      }))
+      sm_ecig_platform_count <- apply(sm_exp_all, 1, function(x) {
+        if (all(is.na(x))) NA_real_ else as.numeric(sum(x, na.rm = TRUE))
+      })
+    } else {
+      sm_ecig_any_all        <- rep(NA_integer_, nrow(r))
+      sm_ecig_platform_count <- rep(NA_real_,    nrow(r))
+    }
+
+    get_posted <- function(num) {
+      col <- paste0("w", w, "_ecig_posted_", num)
+      if (col %in% names(r)) suppressWarnings(as.numeric(r[[col]])) else rep(NA_real_, nrow(r))
+    }
+    ep1 <- get_posted(1); ep2 <- get_posted(2); ep3 <- get_posted(3)
+    sm_ecig_friend    <- ifelse(is.na(ep1), NA_integer_, as.integer(ep1 == 1))
+    sm_ecig_nonfriend <- ifelse(is.na(ep2) & is.na(ep3), NA_integer_,
+                                as.integer((!is.na(ep2) & ep2 == 1) | (!is.na(ep3) & ep3 == 1)))
 
     tv_rows[[wi]] <- data.frame(
-      id            = vertex_ids,
-      grade_period  = gp,
-      gad           = get_gad(r, w),
-      mdd           = get_mdd(r, w),
-      friends_ecig  = get_friends_ecig(r, w),
-      susc_friend   = susc_f_raw,
-      susc_next_yr  = susc_y_raw,
-      out_degree    = as.integer(out_deg),
-      in_degree     = as.integer(in_deg),
-      ecig_imp_use  = sm8_raw,   # "People important to me use e-cigs" (W3+)
-      ecig_ads      = sm18_raw,  # "Attractive ads online/billboards" (W5+ only)
+      id                    = vertex_ids,
+      grade_period          = gp,
+      gad                   = get_gad(r, w),
+      mdd                   = get_mdd(r, w),
+      friends_ecig          = get_friends_ecig(r, w),
+      susc_friend           = susc_f_raw,
+      susc_next_yr          = susc_y_raw,
+      out_degree            = as.integer(out_deg),
+      in_degree             = as.integer(in_deg),
+      sm_ecig_any           = sm_ecig_any,
+      sm_ecig_any_all       = sm_ecig_any_all,
+      sm_ecig_freq_max      = sm_ecig_freq_max,
+      sm_ecig_platform_count= sm_ecig_platform_count,
+      sm_ecig_friend        = sm_ecig_friend,
+      sm_ecig_nonfriend     = sm_ecig_nonfriend,
       stringsAsFactors = FALSE
     )
   }
@@ -1197,7 +1251,8 @@ names(tv_gp3)[names(tv_gp3) == "id"] <- "id_tv"
 full_df <- merge(full_df,
                  tv_gp3[, c("id_tv","friends_ecig","susc_friend","susc_next_yr",
                              "out_degree","in_degree","gad","mdd",
-                             "ecig_imp_use","ecig_ads")],
+                             "sm_ecig_any","sm_ecig_any_all","sm_ecig_freq_max",
+                             "sm_ecig_platform_count","sm_ecig_friend","sm_ecig_nonfriend")],
                  by.x = "id_orig", by.y = "id_tv", all.x = TRUE)
 
 # Merge GP8 time-varying (friends_ecig at GP8 for non-users)
@@ -1355,45 +1410,48 @@ if (!is.null(all_ors) && nrow(all_ors) > 0) {
 # ══════════════════════════════════════════════════════════════════════════════
 # SOCIAL MEDIA SENSITIVITY ANALYSIS
 # Research question: Among users with no/limited peer influence (Col1, Col2, Col3),
-# does social media / advertising exposure predict subgroup membership?
+# does social media exposure to e-cigs predict subgroup membership?
 #
-# Variable: ecig_statement_18 = "E-cigs have attractive ads online/billboards"
-#   Available W5-W8 ONLY → C1: GP5-GP8; C2: GP3-GP6
+# Three variables (W4-W8 only):
+#   sm_ecig_any       = saw e-cig content on any of 6 platforms (sm_post_1~6)
+#   sm_ecig_friend    = content posted by a Friend (ecig_posted_1)
+#   sm_ecig_nonfriend = content by Celebrity/Micro-influencer (ecig_posted_2 or 3)
 #
-# Analysis restricted to adopters with data at their TOA wave.
-# Separate models for:
-#   - ecig_ads (statement_18, W5-W8)
-#   - ecig_imp_use (statement_8, W3-W8, broader "important people" influence)
+# NOTE: sm_ecig_friend and sm_ecig_nonfriend rely on ecig_posted which may not be
+# a conditional follow-up to sm_post — interpret with caution.
 # ══════════════════════════════════════════════════════════════════════════════
 
 cat("\n===== SOCIAL MEDIA SENSITIVITY ANALYSIS =====\n")
-cat("ecig_ads (statement_18): W5-W8 only | ecig_imp_use (statement_8): W3-W8\n")
+cat("Variables: sm_ecig_any | sm_ecig_friend | sm_ecig_nonfriend (all W4-W8)\n")
 
-# Merge social media vars at TOA for each adopter
-# Rename to _toa BEFORE merge to avoid conflict with ecig_ads already in full_df (from GP3 merge)
-tv_toa_sm <- timevar_df[, c("id","grade_period","ecig_ads","ecig_imp_use","gad")]
-names(tv_toa_sm)[names(tv_toa_sm) == "ecig_ads"]     <- "ecig_ads_toa"
-names(tv_toa_sm)[names(tv_toa_sm) == "ecig_imp_use"] <- "ecig_imp_use_toa"
+tv_toa_sm <- timevar_df[, c("id","grade_period",
+                            "sm_ecig_any","sm_ecig_any_all","sm_ecig_freq_max",
+                            "sm_ecig_platform_count","sm_ecig_friend","sm_ecig_nonfriend")]
+names(tv_toa_sm)[names(tv_toa_sm) == "sm_ecig_any"]            <- "sm_ecig_any_toa"
+names(tv_toa_sm)[names(tv_toa_sm) == "sm_ecig_any_all"]        <- "sm_ecig_any_all_toa"
+names(tv_toa_sm)[names(tv_toa_sm) == "sm_ecig_freq_max"]       <- "sm_ecig_freq_max_toa"
+names(tv_toa_sm)[names(tv_toa_sm) == "sm_ecig_platform_count"] <- "sm_ecig_platform_count_toa"
+names(tv_toa_sm)[names(tv_toa_sm) == "sm_ecig_friend"]         <- "sm_ecig_friend_toa"
+names(tv_toa_sm)[names(tv_toa_sm) == "sm_ecig_nonfriend"]      <- "sm_ecig_nonfriend_toa"
 
 sm_sub <- merge(full_df, tv_toa_sm,
                 by.x = c("id_orig","toa"), by.y = c("id","grade_period"), all.x = TRUE)
 
-cat(sprintf("ecig_ads_toa non-NA (adopters with W5-W8 TOA):     %d\n",
-            sum(!is.na(sm_sub$ecig_ads_toa[sm_sub$is_user == 1]))))
-cat(sprintf("ecig_imp_use_toa non-NA (adopters with W3-W8 TOA): %d\n",
-            sum(!is.na(sm_sub$ecig_imp_use_toa[sm_sub$is_user == 1]))))
+cat("\nNon-NA counts among adopters:\n")
+for (sv in c("sm_ecig_any_toa","sm_ecig_any_all_toa","sm_ecig_freq_max_toa",
+             "sm_ecig_platform_count_toa","sm_ecig_friend_toa","sm_ecig_nonfriend_toa")) {
+  cat(sprintf("  %-35s n=%d\n", sv, sum(!is.na(sm_sub[[sv]][sm_sub$is_user==1]))))
+}
 
-sm_covs_ads     <- c("female","hispanic","asian","sex_min","par_edu","gad","mdd",
-                     "out_degree_gp3","in_degree_gp3","friends_ecig_gp3","ecig_ads_toa")
-sm_covs_imp_use <- c("female","hispanic","asian","sex_min","par_edu","gad","mdd",
-                     "out_degree_gp3","in_degree_gp3","friends_ecig_gp3","ecig_imp_use_toa")
+sm_base_covs <- c("female","hispanic","asian","sex_min","par_edu","gad","mdd",
+                  "out_degree_gp3","in_degree_gp3","friends_ecig_gp3")
 
 run_sm_or <- function(df, outcome_col, stratum_col, label, sm_var) {
-  covs <- if (sm_var == "ecig_ads_toa") sm_covs_ads else sm_covs_imp_use
   exclude <- if (outcome_col == "col2_no_friends") c("out_degree_gp3","out_degree_gp8") else c()
-  covs <- covs[!covs %in% exclude & covs %in% names(df)]
-  sub  <- df[df[[stratum_col]] == 1 & !is.na(df[[outcome_col]]) & !is.na(df[[sm_var]]), ]
-  cat(sprintf("\n--- %s | predictor: %s | n=%d, outcome=1: %d ---\n",
+  covs    <- c(sm_base_covs[!sm_base_covs %in% exclude], sm_var)
+  covs    <- covs[covs %in% names(df)]
+  sub     <- df[df[[stratum_col]] == 1 & !is.na(df[[outcome_col]]) & !is.na(df[[sm_var]]), ]
+  cat(sprintf("\n--- %s | %s | n=%d, outcome=1: %d ---\n",
               label, sm_var, nrow(sub), sum(sub[[outcome_col]] == 1, na.rm=TRUE)))
   if (sum(sub[[outcome_col]] == 1, na.rm=TRUE) < 10) { cat("  Too few events\n"); return(NULL) }
   fml <- as.formula(paste(outcome_col, "~", paste(covs, collapse=" + ")))
@@ -1401,9 +1459,13 @@ run_sm_or <- function(df, outcome_col, stratum_col, label, sm_var) {
                   error=function(e){ cat("  Error:", e$message,"\n"); NULL })
   if (is.null(fit)) return(NULL)
   ct <- summary(fit)$coefficients
+  if (!sm_var %in% rownames(ct)) {
+    cat(sprintf("  %s: dropped from model (no variation or separation)\n", sm_var))
+    return(NULL)
+  }
   sm_row <- ct[sm_var, , drop=FALSE]
-  cat(sprintf("  %s: OR=%.3f, p=%.4f %s\n",
-              sm_var, exp(sm_row[1,1]), sm_row[1,4],
+  cat(sprintf("  %s: OR=%.3f, p=%.4f %s\n", sm_var,
+              exp(sm_row[1,1]), sm_row[1,4],
               ifelse(sm_row[1,4]<.01,"**",ifelse(sm_row[1,4]<.05,"*",""))))
   data.frame(group=label, sm_var=sm_var,
              OR=round(exp(sm_row[1,1]),3), pval=round(sm_row[1,4],4),
@@ -1411,7 +1473,9 @@ run_sm_or <- function(df, outcome_col, stratum_col, label, sm_var) {
 }
 
 sm_results <- list()
-for (sm_v in c("ecig_ads_toa","ecig_imp_use_toa")) {
+all_sm_vars <- c("sm_ecig_any_toa","sm_ecig_any_all_toa","sm_ecig_freq_max_toa",
+                 "sm_ecig_platform_count_toa","sm_ecig_friend_toa","sm_ecig_nonfriend_toa")
+for (sm_v in all_sm_vars) {
   sm_results[[paste0("col1_",sm_v)]] <- run_sm_or(sm_sub,"col1_no_exposure","is_user","Col1:NoExposure",sm_v)
   sm_results[[paste0("col2_",sm_v)]] <- run_sm_or(sm_sub,"col2_no_friends", "is_user","Col2:Isolates",sm_v)
   sm_results[[paste0("col3_",sm_v)]] <- run_sm_or(sm_sub,"col3_low_threshold","is_user","Col3:LowThresh",sm_v)
