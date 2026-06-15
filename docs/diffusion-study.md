@@ -257,62 +257,107 @@ $$
 (An older standalone 18-model sensitivity sweep — six SM operationalisations × three subgroups —
 also exists in the pipeline but is not the reported result.)
 
-# 4. Results
+# 4. Results — what we obtained re-running the pipeline
 
-All numbers reproduce Yuchan's `260612_threshold_report_final` (verified — see §5).
+These are **our** numbers from re-running [`codes/260612_netdiffuseR_past6mo_revised13.R`](../codes/260612_netdiffuseR_past6mo_revised13.R)
+on the 042326 release (netdiffuseR 1.25.0), laid out in the **same tables** as
+`260612_threshold_report_final.pdf`. Each table is **not one regression but several** — we state
+the model behind each column, then interpret it in plain words. ** = $p<.01$, * = $p<.05$.
 
-## 4.1 Adoption (Table 2 mixed-effects; Table 3 school-FE sensitivity; 14,666 person-periods)
+## 4.1 Tables 2–3 — Adoption and Threshold side by side
 
-| Predictor | Table 2 — mixed OR | Table 3 — FE-GLM OR |
-|:--|--:|--:|
-| **Network exposure** | **6.46** * | **2.31** ** |
-| **Perceived friend use** | **1.64** ** | **1.43** ** |
-| **MDD** | **3.44** ** | **1.61** ** |
-| **GAD** | **0.31** ** | **0.77** * |
-| Cohort C2 / female / hispanic / asian / par_edu / sex_min | ns | ns |
+Each of Tables 2 and 3 juxtaposes **two different regressions**: an *adoption* model (does a still-
+non-using student start next period?) and the *threshold* model (among those who start, how built-up
+was the peer pressure?). Table 2 uses the **mixed-effects** adoption model, Table 3 the
+**school-fixed-effects** version; the threshold column is the same grouped binomial in both.
 
-Peer exposure is the strongest predictor; PFU and MDD raise the odds of next-period adoption, GAD
-lowers them ("opposite mechanisms"). The two specifications agree on sign and significance for
-every predictor; the mixed-model ORs are larger only because they are subject-specific (§3.2).
+**The regressions (math).** Adoption is a discrete-time hazard over person-periods $(i,t)$ with
+$E_{it}$ = share of $i$'s friends already using:
+$$
+\textbf{Table 2 (mixed): } \operatorname{logit}\Pr(y_{i,t+1}{=}1\mid y_{it}{=}0)=\gamma E_{it}+\alpha_t+\mathbf{x}_i^\top\boldsymbol\beta+u_i+v_{s(i)},
+$$
+$$
+\textbf{Table 3 (FE): } \operatorname{logit}\Pr(y_{i,t+1}{=}1\mid y_{it}{=}0)=\gamma E_{it}+\alpha_t+\xi_{s(i)}+\mathbf{x}_i^\top\boldsymbol\beta .
+$$
+Threshold is the degree-weighted grouped binomial over adopters ($n_i$ friends, $k_i$ already using):
+$$
+\textbf{Threshold: } k_i\mid n_i\sim\mathrm{Binomial}(n_i,\pi_i),\quad \operatorname{logit}\pi_i=\alpha_{\tau_i}+\xi_{s(i)}+\mathbf{x}_i^\top\boldsymbol\beta .
+$$
 
-## 4.2 Threshold — grouped binomial (n = 406 non-isolate adopters; 215 isolates excluded)
+**Our numbers** (Adoption ORs; Threshold ORs, n = 406 non-isolate adopters):
 
-Reported on the coefficient scale in Tables 2–3; ORs in parentheses.
-
-| Predictor | coef | OR | p |
+| Predictor | Adoption — Table 2 mixed | Adoption — Table 3 FE | Threshold (Tables 2–3) |
 |:--|--:|--:|--:|
-| **Perceived friend use** | **0.19** | **1.21** | **<.001** |
-| Asian | −0.51 | 0.60 | .053 |
-| Cohort C2 | 0.97 | 2.64 | .039 |
-| Hispanic / GAD / MDD / female / par_edu / sex_min | — | ns | — |
-| School 104 / School 114 (Hispanic-maj.) | 1.09 / 1.29 | 2.97 / 3.63 | .04 / .002 |
-| **Constant; GP4 … GP8** | **−20.63; 17.23 … 18.84** | **degenerate** | — |
+| Network exposure $\exp(\gamma)$ | 7.6 \*\* | **2.31** \*\* | — |
+| Perceived friend use | 1.72 \*\* | **1.43** \*\* | **1.20** \*\* |
+| MDD | (unstable) | **1.61** \*\* | 0.81 |
+| GAD | (unstable) | **0.77** \* | 0.97 |
+| Cohort C2 | (unstable) | 1.10 | **2.64** \* |
+| Asian | (unstable) | 0.77 | 0.60 (.053) |
+| Hispanic / female / par_edu / sex_min | (unstable) | ns | ns |
+| School 104 / 114 (Hispanic-maj.) | — | ns | **2.99\* / 3.63\*\*** |
+| Constant; GP4 … GP8 | GP8 separates | GP8 separates | **−20.6; 17.2 … 18.8 (degenerate)** |
 
-PFU robustly raises the adoption threshold; Asian lowers it (borderline). **The Constant and every
-grade-period (GP) row are numerical artifacts of complete separation** — they are exactly the
-`-20.63 / 17.23 / … / 18.84` block printed in Tables 2–3 and must not be interpreted. §5.1 explains
-and corrects this. (Yuchan already omits School 105 for the same separation reason; the GP block has
-the identical pathology, undiagnosed.)
+Two reproduction notes. (1) The **FE adoption model (Table 3) reproduces the report exactly** —
+exposure 2.31, MDD 1.61, GAD 0.77, PFU 1.43. (2) The **mixed model (Table 2) is numerically
+unstable**: on identical data our `glmer` converged to a different point (the demographic ORs blow
+up and GP8 separates), so we trust Table 3 and treat the mixed ORs as not robustly identified — a
+first sign that the sparse, separated design strains these models. The Threshold column's
+**Constant and all GP rows are a separation artifact** (the `−20.6 / 17.2 … 18.8` block in the
+report) — see §5.1.
 
-## 4.3 Peer-independent subgroups (Table 1a users, Table 1b non-users)
+**For grandma.** *Whether a teen starts vaping in the next half-year depends most on how many of
+their friends already vape — a kid surrounded by vapers is about **2.3× more likely** to start.
+Feeling depressed nudges them toward it; feeling anxious, slightly away from it; thinking your
+friends vape adds a push too. Now, among the kids who do start, the "threshold" asks how many
+friends were already vaping at that moment: kids who start in 12th grade waited until far more
+friends were already vaping, while early-starters jumped in with almost no one — and believing your
+friends vape goes with waiting for a higher bar. (The giant numbers in the grade rows are a computer
+hiccup, not a real result; we fix it in §5.)*
 
-Logistic membership models with grade-period FE; selected rows (OR; ** p<.01, * p<.05).
+## 4.2 Tables 1a–1b — Peer-independent subgroups (each column is its own regression)
 
-**Users (Table 1a).** Asian is consistently elevated among peer-independent adopters (No
-Exposure 2.49, Neither 3.92\*, Low Threshold 3.53\*\*); MDD is *lower* in the Neither group
-(0.46\*). The **social-media row** is the headline test:
+Every column of Tables 1a/1b is a **separate logistic regression**: among users (1a) or non-users
+(1b), it asks which traits predict belonging to that "peer-independent" profile, controlling for
+grade-period:
+$$
+\operatorname{logit}\Pr(\text{member of subgroup } c)=\alpha_{\tau_i}+\mathbf{z}_i^\top\boldsymbol\theta_c .
+$$
+The **social-media term** `sm_ecig_any` sits inside $\mathbf z$ for the user columns; it is undefined
+for non-users (no time-of-adoption) and shown as "—".
 
-| `sm_ecig_any` (W4–W8) | No Exposure | No Perceived Friends | Neither | Low Threshold |
+**Table 1a — users (our ORs; ** $p{<}.01$, * $p{<}.05$):**
+
+| predictor | No Exposure | No Perc. Friends | Neither | Low Threshold |
 |:--|--:|--:|--:|--:|
-| OR (p) | **2.31** (.013) | **0.40** (.010) | 0.87 (.70) | 1.39 (.31) |
+| Asian | 2.49 (.05) | 2.31 | **3.92** \* | **3.53** \*\* |
+| MDD | 1.07 | 0.53 | **0.46** \* | 0.79 |
+| Out-degree (GP3) | **0.81** \* | 1.10 | 0.94 | 0.98 |
+| Perceived friends (GP3) | **0.74** \* | 0.81 | **0.51** \*\* | 0.86 |
+| Perceived friends (GP8) | 0.85 | **0.56** \*\* | **0.57** \*\* | 0.85 |
+| **`sm_ecig_any` (W4–W8)** | **2.31** \* | **0.40** \* | 0.87 | 1.39 |
 
-Two cells reach $p<.05$ — but they point in **opposite directions** and rest on only ~210–240
-complete cases each. §5.2 shows the positive "No Exposure" cell does not survive correction.
+**Table 1b — non-users / "resisters" (our ORs):**
 
-**Non-users (Table 1b).** Asian is strongly *protective* against being a high-exposure resister
-(0.51\*\*, 0.34\*\*, 0.37\*\*); MDD and female raise the odds of the "High Perceived Friends" and
-"Both High" resister profiles; out-degree and GP8 perceived-friend-use scale up with resistance.
-`sm_ecig_any` is undefined for non-users (no TOA) and is shown as "—".
+| predictor | High Exposure | High Perc. Friends | Both High |
+|:--|--:|--:|--:|
+| Asian | **0.51** \*\* | **0.34** \*\* | **0.37** \*\* |
+| Female | 1.03 | **1.30** \*\* | **1.63** \*\* |
+| MDD | 1.20 | **1.51** \*\* | **1.53** \*\* |
+| Out-degree (GP3) | **1.39** \*\* | **1.06** \* | **1.25** \*\* |
+| Perceived friends (GP8) | **1.47** \*\* | — | **3.42** \*\* |
+| par_edu | 0.96 | **0.93** \*\* | 0.98 |
+
+These reproduce the report exactly. Note `par_edu` looks significant in the "High Perceived Friends"
+column (0.93\*\*) — a red flag we trace to a coding bug and fix in §5.3.
+
+**For grandma.** *We sorted the teens into "types". Among vapers who had **no vaping friends** in
+the network, Asian kids are over-represented and — surprisingly — those who'd seen vaping on social
+media are **2.3× more likely** to be in this no-friends group (as if social media stood in for
+friends). Among teens who **don't** vape even though vaping surrounds them (the "resisters"), Asian
+kids resist strongly, while girls and kids who feel depressed resist **less**. One number about
+parents' education looks meaningful, but it turns out to be an artifact of how "Don't know" answers
+were coded — we clean that up next.*
 
 # 5. Two corrected re-analyses (`_AO`)
 
@@ -423,6 +468,71 @@ pooled W4–W8 exposure measure, and the GP3 adopters acknowledged as structural
 collinear with the Hispanic-majority school dummies — the signal sits in Schools 104/114. Worth
 keeping in mind when reading Tables 2–3; not pursued in detail here.)*
 
+## 5.3 The report's tables, with every fix applied
+*Correction: [`codes/09-fully-corrected-tables-AO.R`](../codes/09-fully-corrected-tables-AO.R) → `outputs_AO/model/fully_corrected_*-AO.csv`*
+
+This section re-runs the report's four tables with **all** the fixes at once: the `par_edu` recode
+below, plus **Firth** for every model that suffered separation or small-sample fragility (threshold,
+adoption, and the subgroup/social-media logistics).
+
+**The `par_edu` fix.** Per the codebook the parent-education column is the **legacy 6-level scale at
+every wave** (1 = ≤8th grade … 6 = advanced degree, **9 = "Don't know"**). Yuchan's pipeline (a) left
+"Don't know" in as a numeric **9** — ranked *above* "advanced degree" — for the 7% of adopters who
+gave it, and (b) applied a "new-scale" remap at W7+ that does not match this release. The corrected
+recode homogenises the scale to a clean $\{1,\dots,6\}$ and sends "Don't know" to missing:
+$$
+\text{par\_edu}^{\text{corr}}_i \;=\; \text{first valid }v\in\{1,\dots,6\}\text{ across the student's waves},
+\qquad 9 \mapsto \text{NA}.
+$$
+
+**Corrected Tables 2–3 (Adoption — Firth FE; Threshold — Firth grouped binomial):**
+
+| Predictor | Adoption (Firth FE) | Threshold (Firth) |
+|:--|--:|--:|
+| Network exposure | **2.34** \*\* | — |
+| Perceived friend use | **1.44** \*\* | **1.20** \*\* |
+| MDD | **1.61** \*\* | 0.78 |
+| GAD | **0.79** \* | 1.02 |
+| Cohort C2 | 1.05 | 2.34 (.06) |
+| Asian | 0.80 | 0.61 (.06) |
+| **par_edu (recoded)** | 0.98 *(ns)* | 1.04 *(ns)* |
+| Constant; GP4 / GP5 / GP8 | GP8 = **0.007\*\*** *(finite)* | **40\*\* / 70\*\* / 189\*\*** *(finite)* |
+
+The degenerate blocks are gone: the threshold grade-period effects are now **finite, large and
+increasing** (40 → 189), i.e. the genuine result the separation hid — *later adopters start only once
+many more friends already use*. Every substantive OR is unchanged (exposure 2.34, PFU 1.20–1.44, MDD
+1.61, GAD 0.79, Asian ≈ 0.6).
+
+**Corrected Tables 1a–1b (subgroups — Firth + recoded `par_edu`):** the conclusions of §4.2 hold —
+Asian elevated among peer-independent users (Neither **3.45\***, Low Threshold **3.25\***) and strongly
+protective among resisters (**0.51 / 0.34 / 0.36**, all \*\*); MDD/female raise resistance. Two changes
+matter:
+
+| | as-is (§4.2) | corrected (§5.3) |
+|:--|--:|--:|
+| `par_edu` in "High Perceived Friends" | **0.93 \*\*** (looked real) | **1.01 (ns)** — spurious effect removed |
+| `sm_ecig_any` in "No Exposure" | 2.31 \* | 2.40 \*\* (survives Firth) |
+
+So the `par_edu` "effect" was manufactured by the "Don't know" coding bug and **vanishes** once it is
+recoded. The social-media "No Exposure" cell, by contrast, **survives** Firth — confirming (as §5.2
+already showed) that it is *not* a small-sample artifact; its fragility lives in the confounder choice
+(`friends_ecig_toa` is measured at adoption), which Firth does not address. Net: Firth fully fixes the
+threshold; for social media it removes one doubt (small-sample) but leaves the design under-powered
+and the No-Exposure estimate confounder-dependent.
+
+**For grandma.** *We re-ran everything with the dials set correctly. First we fixed how "parents'
+education" was recorded: people who answered "I don't know" had been counted as if that were the
+**highest** education level — so we moved those to "missing". The moment we did, a result that looked
+real (something about parents' education among the resisters) **disappeared** — it was never real,
+just a coding slip. Second, we used a sturdier statistical method (Firth) that stops the computer from
+producing those impossible giant numbers. With it, the real pattern shows cleanly: kids who start
+vaping later in high school only do so once **many** of their friends already vape. None of the
+genuine findings changed — friends who vape, feeling depressed, and being surrounded by vaping still
+drive adoption. The one stubborn loose end is social media: the sturdier method confirms the
+"no-friends vapers saw more vaping online" result is not a fluke of small numbers, but we still can't
+be sure it's real, because half the kids can't be measured for it and it leans on a questionable
+control — so we mark it "promising but unproven", not "true".*
+
 # 6. Reproducibility
 
 Reproduced end-to-end on the 042326 release with **netdiffuseR 1.25.0** (CRAN). The in-development
@@ -432,22 +542,25 @@ minimal reproducer are filed for the maintainer (git-ignored `playground/`).
 ```sh
 # 1) Yuchan's pipeline (produces her Tables 1–3 and caches the analytic frames)
 Rscript codes/260612_netdiffuseR_past6mo_revised13.R     # data_path → the two ADVANCE_W*.xlsx
-# 2) The two corrections (consume the analytic frames; write to outputs_AO/model/)
-Rscript codes/07-threshold-corrected-AO.R
-Rscript codes/08-socialmedia-power-AO.R
+# 2) The corrections (consume the analytic frames; write to outputs_AO/model/)
+Rscript codes/07-threshold-corrected-AO.R       # threshold separation (§5.1)
+Rscript codes/08-socialmedia-power-AO.R         # social-media power/robustness (§5.2)
+Rscript codes/09-fully-corrected-tables-AO.R    # all fixes at once: par_edu + Firth (§5.3)
 ```
 
 The `_AO` scripts read the analytic frames built by Yuchan's pipeline (set `AO_THR_SUB` / `AO_CACHE`
-to point at them) and do not alter her variable construction.
+to point at them); script 09 additionally recomputes `par_edu` from the raw XLSX. None alter her
+variable construction otherwise.
 
 # 7. Open items
 
-1. **Adopt the corrected threshold** (§5.1): report model B (exclude GP3) or C (Firth) — the
-   `−20.63 / 17.x` grade-period block is a separation artifact, not a result.
-2. **Re-frame the social-media result** (§5.2): the positive No-Exposure cell does not survive; the
-   surviving cell is protective and opposite-signed. Pool W4–W8 exposure and pre-register.
-3. **Recode `par_edu`** (DK = 9 → NA at all waves; drop the W7+ remap for this release; ordered
-   factor) — see §2.4.1; it currently leaks "Don't know" as a numeric level for 7% of adopters.
+1. **Adopt the corrected threshold** (§5.1/§5.3): report the Firth fit — the `−20.63 / 17.x`
+   grade-period block is a separation artifact, not a result.
+2. **Re-frame the social-media result** (§5.2): the positive No-Exposure cell survives Firth but is
+   confounder-dependent and the design is under-powered. Pool W4–W8 exposure, use baseline-only
+   confounders, and pre-register.
+3. ~~Recode `par_edu`~~ — **done (§5.3)**: "Don't know" (9) → NA, homogeneous 1–6 scale. Roll the
+   recode into the upstream pipeline so all tables use it by default.
 4. **Lag the threshold covariates** to $\tau_i - 1$ to match the disadoption convention and blunt the
    simultaneity concern (§2.5).
 5. Decide the **Hispanic estimand** (school-FE contextual vs no-FE individual) and state it once.
@@ -455,5 +568,5 @@ to point at them) and do not alter her variable construction.
 ---
 
 *Companion document: `A - Network-Disadoption/docs/disadoption-study.md`. Source report:
-`docs/260612_threshold_report_final.pdf`. Corrected analyses: `codes/0{7,8}-*-AO.R`,
+`docs/260612_threshold_report_final.pdf`. Corrected analyses: `codes/0{7,8,9}-*-AO.R`,
 `outputs_AO/model/*-AO.csv`.*
