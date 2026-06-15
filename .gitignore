@@ -9,3 +9,6 @@ Cleaned_Data/w[0-9]*_*.xlsx
 # macOS
 .DS_Store
 **/.DS_Store
+
+# Personal scratch space (AO) — never shared, persists across local branch switches
+playground/
