@@ -1,40 +1,5 @@
 # =============================================================================
 # 260617_netdiffuseR_efficient2_fixed-AO.R
-# The fully-fixed, fast pipeline. Same efficient slim-cache loader as efficient1,
-# with ALL THREE fixes applied:
-#   * Problem 1 — threshold complete separation: grouped-binomial threshold fit by
-#     Firth (brglm2 `method="brglmFit"`) so GP3 / School-105 separations resolve and
-#     the `-20.63 / 17.x` block becomes finite. (≈ run_threshold_reg)
-#   * Problem 2 — par_edu "Don't know" (9) leak + bad W7+ remap: par_edu recoded to a
-#     homogeneous 1..6 scale with 9 -> NA at all waves. (≈ remap_par_edu)
-#   * Problem 3 — the mixed adoption model (lme4::glmer, Table 2) is replaced by a
-#     fixed-effects GLM with CLUSTER-ROBUST SEs (clustered by student). efficient2
-#     verified the (1|id) random intercept is unidentified here (non-convergent,
-#     variance ~128), ~600x slower, and that the FE fit reproduces Table 3 exactly.
-#     The function also prints the diagnostics that justify dropping the random
-#     effects (school ICC rho; student-level design effect). (≈ run_exposure_reg)
-# Net effect: the report's tables, fully corrected, in a fraction of the runtime.
-#
-# WHY: the two ADVANCE workbooks are huge (W1-W8 ≈ 153 MB / 10,341 columns) and
-# openxlsx reads the entire sheet every run. The analysis only needs ~865 of those
-# columns. We read the workbooks ONCE, keep the needed columns, and cache them as a
-# 468 KB RDS; later runs load the RDS in ~1 s.
-#
-# MEASURED (this machine, netdiffuseR 1.25.0):
-#   revised16 (full read every run) ........ 169 s
-#   efficient, 1st run (build cache) ....... 163 s   (read 153 MB ≈ 54 s, one-time)
-#   efficient, cache hit ................... 109 s   (slim load ≈ 1 s)
-# The cache removes the ~54 s read on every subsequent run (and far more on slower
-# disks — this is the cost Yuchan hit).
-#
-# IS PARALLELISM (N cores) NEEDED? No. A profile of the 109 s cache-hit run shows
-# the time is dominated by ONE call:
-#   lme4::glmer (mixed adoption model) .. 83 s (77%)   <- single-threaded; can't be split
-#   plot_diffnet (network figure) ....... 18 s (17%)
-#   everything else (incl. per-school loop) < 10 s
-# Multi-core would only touch the <10 s loop. The real levers for the remaining time
-# are to drop/replace the unstable mixed model with the FE GLM (Table 3) and to skip
-# plot_diffnet — not parallelism.
 # =============================================================================
 rm(list = ls())
 library(netdiffuseR)
@@ -43,10 +8,10 @@ library(lme4)        # only for the school-ICC diagnostic (1|school) — NOT for
 library(sandwich)    # cluster-robust covariance for the FE adoption model
 library(lmtest)      # coeftest() with the robust vcov
 # brglm2 provides the Firth-penalized fit used for the threshold model (problem 1).
-# Resolve from a side library if it is not in the default .libPaths().
-if (!requireNamespace("brglm2", quietly = TRUE))
-  suppressWarnings(library(brglm2, lib.loc = c("playground/Rlib", .libPaths())))
-suppressMessages(library(brglm2, lib.loc = c("playground/Rlib", .libPaths())))
+# (Also requires: lme4, sandwich, lmtest.) A local side-library is added to the
+# search path only if it exists; otherwise the default .libPaths() is used.
+.extra_lib <- if (dir.exists("playground/Rlib")) "playground/Rlib" else character(0)
+suppressMessages(library(brglm2, lib.loc = c(.extra_lib, .libPaths())))
 
 # ── Paths (AO efficient variant) ─────────────────────────────────────────────
 # Input: the two big ADVANCE workbooks live in `in_path`. Output: results go to
@@ -116,55 +81,25 @@ get_schtype <- function(sch) {
   return("Other")
 }
 
-# ── EFFICIENT data loading (AO) ───────────────────────────────────────────────
-# The two ADVANCE workbooks are huge (W1-W8 is ~153 MB / 10,341 columns) and
-# openxlsx::read.xlsx of the full sheet is the dominant cost of this pipeline
-# (minutes). But the analysis only touches a few hundred of those columns. So we
-# read the full workbooks ONCE, keep only the columns the pipeline uses (plus the
-# survey-susceptibility items used by revised13, in case they return), and cache
-# the slim result as a compact RDS. Every subsequent run loads the RDS (~1 s).
-# Delete the cache (or bump CACHE_VER) to force a rebuild; set AO_SLIM to relocate.
-cat("Loading ADVANCE data (efficient slim-cache loader)...\n")
-library(openxlsx)
-CACHE_VER  <- "v1"
-slim_path  <- Sys.getenv("AO_SLIM", unset = file.path(in_path, paste0("ADVANCE_slim_", CACHE_VER, ".rds")))
-
-# Columns the pipeline reads (names are lower-cased first). Allow-list of regexes:
-keep_patterns <- paste(c(
-  "^record_id$",
-  "^w[0-9]+_schoolid$",
-  "^w[0-9]+_past_6mo_use_3$",                                  # adoption outcome
-  "^w[0-9]+_rcads_gad_mean$", "^w[0-9]+_rcads_mdd_mean$",      # mental health
-  "^w[0-9]+_friends_use_ecig$",                               # perceived friend use
-  "^w[0-9]+_try_friend_ecig$", "^w[0-9]+_use_next_yr_ecig$",   # survey susceptibility (revised13 reuse)
-  "^w[0-9]+_dem_gender$", "^w[0-9]+_eth$", "^w[0-9]+_race$", "^w[0-9]+_dem_sexuality$",
-  "^w[0-9]+_dem_high_par_edu(_new)?$",                        # parent education (+ new-scale variant)
-  "^w[0-9]+_sm_post_[0-9]+$", "^w[0-9]+_ecig_posted_[0-9a-z]+$", # social media
-  "^w[0-9]+_friend[0-9]+_[0-9]+$"                             # friendship-nomination edges
-), collapse = "|")
-
-if (file.exists(slim_path)) {
-  .slim  <- readRDS(slim_path)
-  d_w18  <- .slim$w18; d_w910 <- .slim$w910
-  cat(sprintf("  slim-cache HIT: %s\n", slim_path))
-} else {
-  cat("  slim-cache MISS — reading full workbooks once (slow, one-time)...\n")
-  .t0 <- Sys.time()
-  .raw18  <- read.xlsx(file.path(in_path, "ADVANCE_W1-W8.xlsx"),  sheet = 1)
-  .raw910 <- read.xlsx(file.path(in_path, "ADVANCE_W9-W10.xlsx"), sheet = 1)
-  cat(sprintf("  full workbook read: %.1f min\n", as.numeric(difftime(Sys.time(), .t0, units = "mins"))))
-  .slim_keep <- function(d) { names(d) <- tolower(names(d)); d[, grepl(keep_patterns, names(d)), drop = FALSE] }
-  d_w18  <- .slim_keep(.raw18)
-  d_w910 <- .slim_keep(.raw910)
-  rm(.raw18, .raw910); gc()
-  saveRDS(list(w18 = d_w18, w910 = d_w910), slim_path, compress = "xz")
-  cat(sprintf("  slim-cache built: %s\n", slim_path))
-}
-# Names already lower-cased in the cache; enforce again (idempotent) for safety.
+# ── Data loading (AO) — SLIM RDS ONLY ─────────────────────────────────────────
+# This script NEVER touches the 153 MB ADVANCE workbooks. It loads a pre-built slim
+# cache (~468 KB) that holds only the columns the pipeline needs. Build it ONCE with
+# the companion prep script 260617_netdiffuseR_prepare_slim-AO.R; then ship just that
+# RDS + this script to reproduce every result. Override the location with AO_SLIM.
+cat("Loading ADVANCE data (slim RDS only)...\n")
+slim_path <- Sys.getenv("AO_SLIM", unset = file.path(in_path, "ADVANCE_slim_v1.rds"))
+if (!file.exists(slim_path))
+  stop("Slim cache not found:\n  ", slim_path,
+       "\nBuild it once with:\n  Rscript codes/260617_netdiffuseR_prepare_slim-AO.R",
+       "\n(or set AO_SLIM to an existing ADVANCE_slim_v1.rds).")
+.slim  <- readRDS(slim_path)
+d_w18  <- .slim$w18
+d_w910 <- .slim$w910
 names(d_w18)  <- tolower(names(d_w18))
 names(d_w910) <- tolower(names(d_w910))
-cat(sprintf("  W1-W8:  %d students, %d columns (slim)\n",  nrow(d_w18),  ncol(d_w18)))
-cat(sprintf("  W9-W10: %d students, %d columns (slim)\n",  nrow(d_w910), ncol(d_w910)))
+cat(sprintf("  slim cache: %s\n", slim_path))
+cat(sprintf("  W1-W8:  %d students, %d columns\n",  nrow(d_w18),  ncol(d_w18)))
+cat(sprintf("  W9-W10: %d students, %d columns\n",  nrow(d_w910), ncol(d_w910)))
 
 # get_wave_data: returns per-wave slice with standard column record_id + schoolid
 get_wave_data <- function(w) {
@@ -1453,8 +1388,8 @@ make_wide_table <- function(or_list, filename) {
 }
 
 user_table    <- make_wide_table(list(or_col1, or_col2, or_col_both0, or_col3),
-                                 "260610_table1_users.csv")
+                                 "260617_table1_users.csv")
 nonuser_table <- make_wide_table(list(or_col4, or_col5, or_col6),
-                                 "260610_table2_nonusers.csv")
+                                 "260617_table2_nonusers.csv")
 
 cat("\n===== ALL DONE =====\n")
