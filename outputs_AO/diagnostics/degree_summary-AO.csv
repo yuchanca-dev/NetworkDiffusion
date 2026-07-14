@@ -1,0 +1,5 @@
+"scope","n_adopters","median_dgr","iqr_low","iqr_high","mean_dgr","pct_dgr_le_1","pct_dgr_le_2","pct_dgr_le_3","pct_dgr_eq_0"
+"OVERALL",828,2,0,4,2.3,39.25,54.95,69.81,26.57
+"Asian-majority",297,2,0,4,2.54,35.35,50.51,62.63,25.25
+"Hispanic-majority",363,2,0,4,2.19,41.05,57.3,73.28,26.45
+"Other",168,2,0,3.25,2.11,42.26,57.74,75,29.17

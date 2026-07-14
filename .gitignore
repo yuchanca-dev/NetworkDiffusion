@@ -2,6 +2,20 @@
 Cleaned_Data/w[0-9]*_*.csv
 Cleaned_Data/w[0-9]*edges*.csv
 Cleaned_Data/w[0-9]*_*.xlsx
+Cleaned_Data/ADVANCE_*.xlsx
+Cleaned_Data/*.xlsx
+Cleaned_Data/*.rds
+Cleaned_Data/ADVANCE_slim_*.rds
 
 # R data files
 *.RData
+.Rhistory
+.Rproj.user/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Personal scratch space (AO) — never shared, persists across local branch switches
+playground/
+.Rproj.user

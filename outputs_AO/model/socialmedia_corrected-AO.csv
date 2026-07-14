@@ -1,0 +1,21 @@
+"subgroup","spec","sm_var","n","events","sm_prev","epv","OR","ci_lo","ci_hi","p","min_detectable_OR_80","p_BH","p_bonf"
+"No Exposure","1_full_yuchan","sm_ecig_any_toa",239,115,0.607,7.2,2.305,1.197,4.441,0.0125,2.55,0.025,0.05
+"No Exposure","2_firth_full","sm_ecig_any_toa",239,115,0.607,7.2,2.117,1.118,4.009,0.0214,2.49,NA,NA
+"No Exposure","3_baseline_GP3","sm_ecig_any_toa",338,172,0.607,19.1,1.509,0.93,2.45,0.0958,2,NA,NA
+"No Exposure","4_parsimonious","sm_ecig_any_toa",455,240,0.622,40,1.255,0.853,1.848,0.2489,1.74,NA,NA
+"No Exposure","5_cumulative_W4toTOA","sm_ecig_ever_toa",448,238,0.779,26.4,1.243,0.763,2.026,0.3823,2.01,NA,NA
+"No Perceived Friends","1_full_yuchan","sm_ecig_any_toa",213,97,0.606,5.7,0.396,0.195,0.804,0.0103,2.75,0.025,0.0412
+"No Perceived Friends","2_firth_full","sm_ecig_any_toa",213,97,0.606,5.7,0.433,0.218,0.86,0.0168,2.66,NA,NA
+"No Perceived Friends","3_baseline_GP3","sm_ecig_any_toa",338,137,0.607,15.2,0.546,0.332,0.898,0.0171,2.04,NA,NA
+"No Perceived Friends","4_parsimonious","sm_ecig_any_toa",455,166,0.622,27.7,0.514,0.343,0.769,0.0012,1.78,NA,NA
+"No Perceived Friends","5_cumulative_W4toTOA","sm_ecig_ever_toa",448,174,0.779,19.3,0.434,0.26,0.726,0.0014,2.08,NA,NA
+"Neither","1_full_yuchan","sm_ecig_any_toa",243,63,0.601,4.2,0.87,0.429,1.764,0.6984,2.75,0.6984,1
+"Neither","2_firth_full","sm_ecig_any_toa",243,63,0.601,4.2,0.867,0.439,1.712,0.6808,2.65,NA,NA
+"Neither","3_baseline_GP3","sm_ecig_any_toa",338,84,0.607,9.3,0.886,0.515,1.527,0.6639,2.18,NA,NA
+"Neither","4_parsimonious","sm_ecig_any_toa",455,102,0.622,17,0.667,0.422,1.053,0.0824,1.92,NA,NA
+"Neither","5_cumulative_W4toTOA","sm_ecig_ever_toa",448,104,0.779,11.6,0.724,0.421,1.247,0.2443,2.17,NA,NA
+"Low Threshold","1_full_yuchan","sm_ecig_any_toa",239,156,0.607,9.8,1.39,0.734,2.636,0.3124,2.49,0.4165,1
+"Low Threshold","2_firth_full","sm_ecig_any_toa",239,156,0.607,9.8,1.349,0.72,2.525,0.3501,2.45,NA,NA
+"Low Threshold","3_baseline_GP3","sm_ecig_any_toa",338,229,0.607,25.4,1.114,0.676,1.835,0.6716,2.04,NA,NA
+"Low Threshold","4_parsimonious","sm_ecig_any_toa",455,308,0.622,51.3,0.953,0.631,1.442,0.8212,1.81,NA,NA
+"Low Threshold","5_cumulative_W4toTOA","sm_ecig_ever_toa",448,307,0.779,34.1,1.215,0.733,2.015,0.4503,2.06,NA,NA
